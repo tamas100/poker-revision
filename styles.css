@@ -20,3 +20,11 @@ body {
   background-color: #1866a7;
   border-color: #1866a7;
 }
+
+.invisible {
+  display: none;
+}
+
+.bet-slider {
+  width: 65vw;
+}

@@ -1,34 +1,40 @@
-const $newGameButton = document.querySelector(".js-new-game-button");
-const $playerCardsContainer = document.querySelector(".js-player-cards-container");
-const $gameDataContainer = document.querySelector(".js-game-data-container")
+const $newGameButton = document.querySelector('.js-new-game-button');
+const $playerCardsContainer = document.querySelector('.js-player-cards-container');
+const $chipCountContainer = document.querySelector('.js-chip-count-container')
+const $potContainer = document.querySelector('.js-pot-container');
 
 // program state - program állapota
 let deckId = null; // nem definiált érték
 let playerCards = [];
-let playerCoins = 100;
-let computerCoins = 100;
-let pot = 0;
+let playerChips = 100;
+let computerChips = 100;
+let pot = 0; // kassza
 
-$playerCardsContainer.innerHTML = "Ide jönnek majd a lapok.";
-$gameDataContainer.innerHTML = `
-<p>Player coins: ${playerCoins}</p>
-<p>Computer coins: ${computerCoins}</p>
-<p>Pot: ${pot}</p>
-`
-
-function renderPlayerCards(playerCards) {
-    // let html = `        
-    //     <img src="${playerCards[0].image}" alt="playercards[0].code"/>        
-    //     <img src="${playerCards[1].image}" alt="playercards[0].code"/>    
-    //     `
-    // ;
-
-    let html = ``;
-
+function renderPlayerCards() {
+    let html = '';
     for (let card of playerCards) {
-        html += `<img src="${card.image}" alt="${card.code}"/>`
+        html += `<img src="${card.image}" alt="${card.code}"/>`;
     }
     $playerCardsContainer.innerHTML = html;
+}
+
+function renderChips() {
+    $chipCountContainer.innerHTML = `
+        <div class="chip-count">Player: ${playerChips}</div>
+        <div class="chip-count">Computer: ${computerChips}</div>
+    `;
+}
+
+function renderPot() {
+    $potContainer.innerHTML = `
+        <div class="chip-count">Pot: ${pot}</div>
+    `;
+}
+
+function render() {
+    renderPlayerCards();
+    renderChips();
+    renderPot();
 }
 
 function drawAndRenderPlayerCards() {
@@ -37,7 +43,7 @@ function drawAndRenderPlayerCards() {
         .then(data => data.json())
         .then(response => {
             playerCards = response.cards;
-            renderPlayerCards(playerCards);
+            render();
         });
 }
 
@@ -46,9 +52,10 @@ function startGame() {
         .then(data => data.json())
         .then(response => {
             deckId = response.deck_id;
-            drawAndRenderPlayerCards();
+            drawAndRenderPlayerCards(); // TODO: refactorálás async-await segítségével
         });
 }
 
 
 $newGameButton.addEventListener("click", startGame);
+render();

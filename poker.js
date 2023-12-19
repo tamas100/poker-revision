@@ -59,7 +59,7 @@ function renderPot() {
 }
 
 function canBet() {
-    return playerCards.length === 2 && playerChips > 0 && pot === 0;
+    return playerCards.length === 2 && playerChips > 0 && pot === 3;
 }
 
 function renderSlider() {
@@ -97,10 +97,13 @@ function startGame() {
             deckId = response.deck_id;
             drawAndRenderPlayerCards(); // TODO: refactorálás async-await segítségével
         });
+    playerChips -= 1;
+    computerChips -= 2;
+    pot += 3;
 }
 
 
 $newGameButton.addEventListener("click", startGame);
-$betSlider.addEventListener('change', render);
+$betSlider.addEventListener('input', render);
 $betButton.addEventListener("click", handleBet)
 render();

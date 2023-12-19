@@ -2,7 +2,7 @@ body {
   background-color: black;
   color: white;
 }
-.new-game-button {
+.game-button {
   background-color: #3799e6;
   padding: 4px 15px;
   font-size: 17px;
@@ -12,11 +12,11 @@ body {
   cursor: pointer;
 }
 
-.new-game-button:hover {
+.game-button:hover {
   background-color: #4aa5ef;
 }
 
-.new-game-button:active {
+.game-button:active {
   background-color: #1866a7;
   border-color: #1866a7;
 }

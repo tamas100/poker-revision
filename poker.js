@@ -5,6 +5,7 @@ const $potContainer = document.querySelector('.js-pot-container');
 const $betArea = document.querySelector('.js-bet-area');
 const $betSlider = document.querySelector('#bet-amount');
 const $betSliderValue = document.querySelector('.js-slider-value');
+const $betButton = document.querySelector('.js-bet-button');
 
 // program state - program állapota
 let {
@@ -27,6 +28,13 @@ function getInitialState() {
 
 function initialize() {
     ({ deckId, playerCards, playerChips, computerChips, pot } = getInitialState());
+}
+
+function handleBet() {
+    playerChips -= $betSlider.value;
+    pot += parseInt($betSlider.value);
+    $betSlider.setAttribute('max', playerChips);
+    render();
 }
 
 function renderPlayerCards() {
@@ -82,6 +90,7 @@ function drawAndRenderPlayerCards() {
 }
 
 function startGame() {
+    initialize();
     fetch("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
         .then(data => data.json())
         .then(response => {
@@ -93,5 +102,5 @@ function startGame() {
 
 $newGameButton.addEventListener("click", startGame);
 $betSlider.addEventListener('change', render);
-initialize();
+$betButton.addEventListener("click", handleBet)
 render();

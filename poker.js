@@ -20,7 +20,9 @@ let {
     computerCards,
     computerAction, //TODO private? OOP???
     playerChips,
+    playerBets,
     computerChips,
+    computerBets,
     playerBetPlaced,
     pot             // kassza
 } = getInitialState();
@@ -34,7 +36,9 @@ function getInitialState() {
         computerCards: [],
         computerAction: null,
         playerChips: 100,
+        playerBets: 0,
         computerChips: 100,
+        computerBets: 0,
         playerBetPlaced: false,
         pot: 0
     }
@@ -47,7 +51,9 @@ function initialize() {
         computerCards,
         computerAction, // játékos cselekedete (call, fold)
         playerChips,
+        playerBets,
         computerChips,
+        computerBets,
         playerBetPlaced,
         pot
     } = getInitialState());
@@ -121,7 +127,9 @@ function drawAndRenderPlayerCards() {
 
 function postBlinds() {
     playerChips -= 1;
+    playerBets += 1;
     computerChips -= 2;
+    computerBets += 2;
     pot += 3;
     render();
 }
@@ -142,14 +150,6 @@ function startHand() {
 function startGame() {
     initialize();
     startHand();
-}
-
-function handleComputerCall() {
-    if (computerAction === 'Call') {
-        computerChips -= $betSlider.value;
-        pot += parseInt($betSlider.value);
-    }
-    render();
 }
 
 // a belső változó felülírja a globális változót
@@ -177,26 +177,36 @@ function computerMoveAfterBet() {
     fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=2`)
         .then(data => data.json())
         .then(response => {
-            if (shouldComputerCall(response.cards)) { //
+            if (pot === 4) {
+                computerAction = 'Check';
+                computerCards = response.cards;
+            } else if (shouldComputerCall(response.cards)) { //
                 computerAction = 'Call';
                 computerCards = response.cards;
+                // Mivel a pot-ban bent van már a 2 vak zseton
+                // ezért pot - 4-et kell még betenni.
+                const difference = playerBets - computerBets;
+                computerChips -= difference;
+                computerBets += difference;
+                pot += difference;
             } else {
                 computerAction = 'Fold';
             }
             render();
-            handleComputerCall();
         });
 }
 
 function handleBet() {
+    const betValue = parseInt($betSlider.value);
     // játékos zsetonjaiból kivonjuk a bet értékét
-    playerChips -= $betSlider.value;
+    playerChips -= betValue;
     // a pothoz hozzáadjuk a bet értékét 
-    pot += parseInt($betSlider.value);
+    pot += betValue;
     // a maximális bet érték a játékos zsetonjaival egyenlő
     $betSlider.setAttribute('max', playerChips);
     // játék állapota: játékos megtette a tétjét
     playerBetPlaced = true;
+    playerBets += betValue;
     render();
     computerMoveAfterBet(); // az ellenfél reakciója
 }

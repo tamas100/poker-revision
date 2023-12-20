@@ -1,30 +1,38 @@
+//----------------------------------------------------------------
+// HTML elemek szelektálása
 const $newGameButton = document.querySelector('.js-new-game-button');
 const $playerCardsContainer = document.querySelector('.js-player-cards-container');
-const $chipCountContainer = document.querySelector('.js-chip-count-container')
+const $computerCardsContainer = document.querySelector('.js-computer-cards-container');
+const $playerChipCountContainer = document.querySelector('.js-player-chip-count-container')
+const $computerChipCountContainer = document.querySelector('.js-computer-chip-count-container')
+const $computerActionContainer = document.querySelector('.js-computer-action-container');
 const $potContainer = document.querySelector('.js-pot-container');
 const $betArea = document.querySelector('.js-bet-area');
 const $betSlider = document.querySelector('#bet-amount');
 const $betSliderValue = document.querySelector('.js-slider-value');
 const $betButton = document.querySelector('.js-bet-button');
-const $computerCardsContainer = document.querySelector('.js-computer-cards-container');
 
-
-// program state - program állapota
+//----------------------------------------------------------------
+// Állapotok
 let {
     deckId,
     playerCards,
-    computerCards, //TODO private? OOP???
+    computerCards,
+    computerAction, //TODO private? OOP???
     playerChips,
     computerChips,
     playerBetPlaced,
     pot             // kassza
 } = getInitialState();
 
+//----------------------------------------------------------------
+// Állapot változtató függvények
 function getInitialState() {
     return {   // mindig egy sorban a return-nel
         deckId: null, // nem definiált érték
         playerCards: [],
         computerCards: [],
+        computerAction: null,
         playerChips: 100,
         computerChips: 100,
         playerBetPlaced: false,
@@ -37,13 +45,15 @@ function initialize() {
         deckId,
         playerCards,
         computerCards,
-        playerChips, computerChips,
+        computerAction, // játékos cselekedete (call, fold)
+        playerChips,
+        computerChips,
         playerBetPlaced,
         pot
     } = getInitialState());
 }
-
-function shouldComputerCall() {
+// a belső változó felülírja a globális változót
+function shouldComputerCall(computerCards) {
     if (computerCards.length !== 2) return false; // extra védelem
     const card1Code = computerCards[0].code; // pl. AC, 4H, 0H (10: 0)
     const card2Code = computerCards[1].code;
@@ -67,10 +77,13 @@ function computerMoveAfterBet() {
     fetch(`https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=2`)
         .then(data => data.json())
         .then(response => {
-            computerCards = response.cards;
-            alert(shouldComputerCall() ? 'Call' : 'Fold');
-            console.log(computerCards);
-            //render();
+            if (shouldComputerCall(response.cards)) { //
+                computerAction = 'Call';
+                computerCards = response.cards;
+            } else {
+                computerAction = 'Fold';
+            }
+            render();
         });
 }
 
@@ -84,29 +97,40 @@ function handleBet() {
     // játék állapota: játékos megtette a tétjét
     playerBetPlaced = true;
     render();
-    computerMoveAfterBet();
+    computerMoveAfterBet(); // az ellenfél reakciója
 }
 
-function renderComputerCards() {
-    let html = '';
-    for (let card of computerCards) {
-        html += `<img src="${card.image}" alt="${card.code}"/>`;
+//----------------------------------------------------------------
+// Render függvények
+function renderSlider() {
+    if (canBet()) {
+        $betArea.classList.remove('invisible');
+        $betSlider.setAttribute('max', playerChips);
+        $betSliderValue.innerText = $betSlider.value
+    } else {
+        $betArea.classList.add('invisible');
     }
-    $computerCardsContainer.innerHTML = html;
 }
 
-function renderPlayerCards() {
+function renderCardsInContainer(cards, container) {
     let html = '';
-    for (let card of playerCards) {
+    for (let card of cards) {
         html += `<img src="${card.image}" alt="${card.code}"/>`;
     }
-    $playerCardsContainer.innerHTML = html;
+    container.innerHTML = html;
+}
+
+function renderAllCards() {
+    renderCardsInContainer(playerCards, $playerCardsContainer);
+    renderCardsInContainer(computerCards, $computerCardsContainer);
 }
 
 function renderChips() {
-    $chipCountContainer.innerHTML = `
-        <div class="chip-count">Player: ${playerChips}</div>
-        <div class="chip-count">Computer: ${computerChips}</div>
+    $playerChipCountContainer.innerHTML = `
+        <div class="chip-count">Játékos: ${playerChips} zseton</div>
+    `;
+    $computerChipCountContainer.innerHTML = `
+        <div class="chip-count">Számítógép: ${computerChips} zseton</div>
     `;
 }
 
@@ -120,22 +144,16 @@ function canBet() {
     return playerCards.length === 2 && playerChips > 0 && playerBetPlaced === false;
 }
 
-function renderSlider() {
-    if (canBet()) {
-        $betArea.classList.remove('invisible');
-        $betSlider.setAttribute('max', playerChips);
-        $betSliderValue.innerText = $betSlider.value
-    } else {
-        $betArea.classList.add('invisible');
-    }
-}
+function renderActions() {
+    $computerActionContainer.innerHTML = computerAction ?? "";
+}                                          // nullish operátor
 
 function render() {
-    renderPlayerCards();
-    renderComputerCards();
+    renderAllCards();
     renderChips();
     renderPot();
     renderSlider();
+    renderActions();
 }
 
 function drawAndRenderPlayerCards() {
@@ -172,8 +190,10 @@ function startGame() {
     startHand();
 }
 
-
+//----------------------------------------------------------------
+// Eseményfigyelők
 $newGameButton.addEventListener("click", startGame);
 $betSlider.addEventListener('input', render);
 $betButton.addEventListener("click", handleBet)
+
 render();

@@ -152,6 +152,23 @@ function startGame() {
     startHand();
 }
 
+function endHand() {
+    setTimeout(() => {
+        if (computerAction === 'Fold') { // TODO: felsorolt típus kell az akcióknak, hogy kisbetüvel is kezdődhessen
+            playerChips += pot;
+            pot = 0;
+        }
+        playerBets: 0;
+        computerBets: 0;
+        playerCards: [];
+        computerCards: [];
+        computerAction: null;
+        deckId: null;
+        playerBetPlaced: false;
+        render();
+    }, 2000);
+}
+
 // a belső változó felülírja a globális változót
 function shouldComputerCall(computerCards) {
     if (computerCards.length !== 2) return false; // extra védelem
@@ -191,12 +208,9 @@ function computerMoveAfterBet() {
                 pot += difference;
             } else {
                 computerAction = 'Fold';
-                playerChips += pot;
-                pot = 0;
-                render();
-                startHand();
             }
             render();
+            endHand();
         });
 }
 

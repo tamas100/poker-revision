@@ -191,6 +191,10 @@ function computerMoveAfterBet() {
                 pot += difference;
             } else {
                 computerAction = 'Fold';
+                playerChips += pot;
+                pot = 0;
+                render();
+                startHand();
             }
             render();
         });
